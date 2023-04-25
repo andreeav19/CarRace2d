@@ -1,5 +1,6 @@
 #include <iostream>
 #include <windows.h>
+#include <math.h>
 #include <GL/freeglut.h>
 
 using namespace std;
@@ -8,9 +9,13 @@ GLdouble left_m = -100.0;
 GLdouble right_m = 700.0;
 GLdouble bottom_m = -140.0;
 GLdouble top_m = 460.0;
-double ok = 1;
+double gameRunning = 1;
 double j = 0.0;
 double i = 0.0;
+double firstIntermittentLineXTranslation = 0.0;
+double secondIntermittentLineXTranslation = 0.0;
+double thirdIntermittentLineXTranslation = 0.0;
+double car_x_pos = 0.0;
 double contor = 0;
 double loc_vert = 800;
 int vector[3] = { 0, 160, 320 };
@@ -37,15 +42,21 @@ void RenderString(float x, float y, void* font, const unsigned char* string)
 }
 void startgame(void)
 {
-
-	if (height != j || (loc_vert > 90 || loc_vert < -90))
+	if ((height != j) || abs(loc_vert - car_x_pos) >= 80)
 	{
 
-		if (i < -380)
-		{
-			i = 0;
+		if (firstIntermittentLineXTranslation < -1275) {
+			firstIntermittentLineXTranslation = 0;
 		}
-		i = i - 2 * timp;
+		if (secondIntermittentLineXTranslation < -1700) {
+			secondIntermittentLineXTranslation = -425;
+		}
+		if (thirdIntermittentLineXTranslation < -2125) {
+			thirdIntermittentLineXTranslation = -850;
+		}
+		firstIntermittentLineXTranslation -=  2 * timp;
+		secondIntermittentLineXTranslation -= 2 * timp;
+		thirdIntermittentLineXTranslation -= 2 * timp;
 
 		loc_vert -= timp;
 
@@ -66,7 +77,7 @@ void startgame(void)
 		glutPostRedisplay();
 	}
 	else {
-		ok = 0;
+		gameRunning = 0;
 	}
 }
 
@@ -112,32 +123,61 @@ void drawScene(void)
 
 	// Liniile intrerupte
 	glPushMatrix();
-	glTranslated(i, 0.0, 0.0);
-
+	glTranslated(firstIntermittentLineXTranslation, 0.0, 0.0);
 
 	glBegin(GL_LINES);
-	glVertex2i(-100, 80);
+	glVertex2i(700, 80);
+	glVertex2i(1075, 80);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex2i(700, 240);
+	glVertex2i(1075, 240);
+	glEnd();
+
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslated(secondIntermittentLineXTranslation, 0.0, 0.0);
+
+	glBegin(GL_LINES);
+	glVertex2i(1125, 80);
 	glVertex2i(1500, 80);
 	glEnd();
 
 	glBegin(GL_LINES);
-	glVertex2i(-100, 240);
+	glVertex2i(1125, 240);
 	glVertex2i(1500, 240);
 	glEnd();
+
 	glPopMatrix();
 
+	glPushMatrix();
+	glTranslated(thirdIntermittentLineXTranslation, 0.0, 0.0);
+
+	glBegin(GL_LINES);
+	glVertex2i(1550, 80);
+	glVertex2i(1925, 80);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex2i(1550, 240);
+	glVertex2i(1925, 240);
+	glEnd();
+
+	glPopMatrix();
 
 
 	//desenam masina
 	glPushMatrix();
-	glTranslated(0.0, j, 0.0);
+	glTranslated(car_x_pos, j, 0.0);
 
 
 
 	glColor3f(0.996, 0.365, 0.149);
 	glRecti(-45, -15, 45, 15);
 
-	if (ok == 0)
+	if (!gameRunning)
 	{
 		rsj = 8;
 		rss = -8;
@@ -149,7 +189,7 @@ void drawScene(void)
 	glPopMatrix();
 	glPopMatrix();
 
-	if (ok == 0) {
+	if (!gameRunning) {
 		RenderString(250.0f, 200.0f, GLUT_BITMAP_8_BY_13, (const unsigned char*)"GAME OVER");
 	}
 
@@ -159,7 +199,6 @@ void drawScene(void)
 		j = j - 1;
 	else {
 		contor = 0;
-
 	}
 
 	//desenam a doua masina (adversara)
@@ -190,7 +229,7 @@ void reshape(int w, int h)
 
 void miscasus(void)
 {
-	if (ok != 0)
+	if (gameRunning)
 	{
 		if (j < 320)
 		{
@@ -202,9 +241,29 @@ void miscasus(void)
 	}
 }
 
+void moveCarForwards(void) {
+	if (gameRunning) {
+		if (car_x_pos < 650) {
+			car_x_pos += 7;
+			timp += 0.01;
+		}
+		glutPostRedisplay();
+	}
+}
+
+void moveCarBackwards(void) {
+	if (gameRunning) {
+		if (car_x_pos > 0) {
+			car_x_pos -= 7;
+			timp -= 0.01;
+		}
+		glutPostRedisplay();
+	}
+}
+
 void miscajos(void)
 {
-	if (ok != 0)
+	if (gameRunning)
 	{
 		if (j > 0)
 		{
@@ -220,16 +279,19 @@ void miscajos(void)
 
 void keyboard(int key, int x, int y)
 {
-
-
 	switch (key) {
-	case GLUT_KEY_UP:
-		miscasus();
-		break;
-	case GLUT_KEY_DOWN:
-		miscajos();
-		break;
-
+		case GLUT_KEY_UP:
+			miscasus();
+			break;
+		case GLUT_KEY_DOWN:
+			miscajos();
+			break;
+		case GLUT_KEY_RIGHT:
+			moveCarForwards();
+			break;
+		case GLUT_KEY_LEFT:
+			moveCarBackwards();
+			break;
 	}
 
 }
