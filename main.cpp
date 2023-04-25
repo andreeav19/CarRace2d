@@ -125,7 +125,6 @@ void drawScene(void)
 	glPushMatrix();
 	glTranslated(firstIntermittentLineXTranslation, 0.0, 0.0);
 
-	glColor3f(1, 0, 0);
 	glBegin(GL_LINES);
 	glVertex2i(700, 80);
 	glVertex2i(1075, 80);
@@ -141,7 +140,6 @@ void drawScene(void)
 	glPushMatrix();
 	glTranslated(secondIntermittentLineXTranslation, 0.0, 0.0);
 
-	glColor3f(0, 1, 0);
 	glBegin(GL_LINES);
 	glVertex2i(1125, 80);
 	glVertex2i(1500, 80);
@@ -157,7 +155,6 @@ void drawScene(void)
 	glPushMatrix();
 	glTranslated(thirdIntermittentLineXTranslation, 0.0, 0.0);
 
-	glColor3f(0, 0, 1);
 	glBegin(GL_LINES);
 	glVertex2i(1550, 80);
 	glVertex2i(1925, 80);
@@ -193,9 +190,7 @@ void drawScene(void)
 	glPopMatrix();
 
 	if (!gameRunning) {
-		cout << "FINAL: loc_vert: " << loc_vert << " | " << "car_x_pos: " << car_x_pos << "\n";
 		RenderString(250.0f, 200.0f, GLUT_BITMAP_8_BY_13, (const unsigned char*)"GAME OVER");
-		exit(0);
 	}
 
 	if (contor == 1 && (j != 160 && j != 320))
@@ -284,8 +279,6 @@ void miscajos(void)
 
 void keyboard(int key, int x, int y)
 {
-	cout << "loc_vert: " << loc_vert << " | " << "car_x_pos: " << car_x_pos << "\n";
-
 	switch (key) {
 		case GLUT_KEY_UP:
 			miscasus();
