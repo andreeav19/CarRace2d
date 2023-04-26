@@ -40,8 +40,27 @@ void RenderString(float x, float y, void* font, const unsigned char* string)
 
 	glutBitmapString(font, string);
 }
-void startgame(void)
-{
+
+void resetGame() {
+	gameRunning = 1;
+	j = 0.0;
+	i = 0.0;
+	firstIntermittentLineXTranslation = 0.0;
+	secondIntermittentLineXTranslation = 0.0;
+	thirdIntermittentLineXTranslation = 0.0;
+	car_x_pos = 0.0;
+	contor = 0;
+	loc_vert = 800;
+	height = vector[rand() % 3];
+	score = 0;
+	timp = 0.15;
+	pct = 1000;
+	rsj = rdj = rss = rds = 0;
+}
+
+
+void startgame(void){
+
 	if ((height != j) || abs(loc_vert - car_x_pos) >= 80)
 	{
 
@@ -189,10 +208,6 @@ void drawScene(void)
 	glPopMatrix();
 	glPopMatrix();
 
-	if (!gameRunning) {
-		RenderString(250.0f, 200.0f, GLUT_BITMAP_8_BY_13, (const unsigned char*)"GAME OVER");
-	}
-
 	if (contor == 1 && (j != 160 && j != 320))
 		j = j + 1;
 	else if (contor == -1 && (j != 160 && j != 0))
@@ -208,8 +223,19 @@ void drawScene(void)
 	glColor3f(0.471, 0.667, 0.949);
 	glRecti(-45, -15, 45, 15);
 
-
 	glPopMatrix();
+
+	if (!gameRunning) {
+		RenderString(250.0f, 200.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
+		glColor3f(1, 0.4, 0.3);
+		glBegin(GL_QUAD_STRIP);
+		glVertex2f(260.0, 180.0);
+		glVertex2f(260.0, 130.0);
+		glVertex2f(350.0, 180.0);
+		glVertex2f(350.0, 130.0);
+		glEnd();
+		RenderString(275.0f, 150.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"Restart");
+	}
 
 	startgame();
 	glutPostRedisplay();
@@ -269,8 +295,6 @@ void miscajos(void)
 		{
 			contor = -1;
 			j -= 1;
-
-
 		}
 
 		glutPostRedisplay();
@@ -296,6 +320,20 @@ void keyboard(int key, int x, int y)
 
 }
 
+void mouse(int button, int state, int mx, int my)
+{
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		double wx = (double)mx / glutGet(GLUT_WINDOW_WIDTH) * (right_m - left_m) + left_m;
+		double wy = (1.0 - (double)my / glutGet(GLUT_WINDOW_HEIGHT)) * (top_m - bottom_m) + bottom_m;
+
+		if (wx >= 260.0 && wx <= 350.0 && wy >= 130.0 && wy <= 180.0) {
+			if (!gameRunning)
+				resetGame();
+		}
+	}
+}
+
 
 int main(int argc, char** argv)
 {
@@ -307,6 +345,7 @@ int main(int argc, char** argv)
 	init();
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(reshape);
+	glutMouseFunc(mouse);
 	glutSpecialFunc(keyboard);
 
 	glutMainLoop();
