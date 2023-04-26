@@ -9,17 +9,24 @@ GLdouble left_m = -100.0;
 GLdouble right_m = 700.0;
 GLdouble bottom_m = -140.0;
 GLdouble top_m = 460.0;
+
 double gameRunning = 1;
 double j = 0.0;
 double i = 0.0;
+
 double firstIntermittentLineXTranslation = 0.0;
 double secondIntermittentLineXTranslation = 0.0;
 double thirdIntermittentLineXTranslation = 0.0;
+
 double car_x_pos = 0.0;
 double contor = 0;
-double loc_vert = 800;
+
 int vector[3] = { 0, 160, 320 };
-double height = vector[rand() % 3];
+double car_obstacle_x = 800;
+double car_obstacle_y = vector[rand() % 3];
+double coin_x = 800;
+double coin_y = ((int)car_obstacle_y + 160) % 320;
+
 int score = 0;
 double timp = 0.15;
 int pct = 1000;
@@ -42,7 +49,7 @@ void RenderString(float x, float y, void* font, const unsigned char* string)
 }
 void startgame(void)
 {
-	if ((height != j) || abs(loc_vert - car_x_pos) >= 80)
+	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 80)
 	{
 
 		if (firstIntermittentLineXTranslation < -1275) {
@@ -58,14 +65,31 @@ void startgame(void)
 		secondIntermittentLineXTranslation -= 2 * timp;
 		thirdIntermittentLineXTranslation -= 2 * timp;
 
-		loc_vert -= timp;
+		car_obstacle_x -= timp;
+		coin_x -= timp;
 
-		if (loc_vert < -150)
+		int random_i_o = rand() % 3; // random index for obstacle
+		int random_i_c = rand() % 3; // random index for coin
+
+		// ensure that obstacles and coins are not on the same line
+		random_i_c = (random_i_c != random_i_o) ? random_i_c : (random_i_c + 1) % 3;
+
+
+		if (car_obstacle_x < -150)
 		{
 			score += 100;
-			height = vector[rand() % 3];
+			car_obstacle_y = vector[random_i_o];
 			cout << "Score:  " << score << endl;
-			loc_vert = 800;
+			car_obstacle_x = 800;
+		}
+
+		if (coin_x < -150)
+		{
+			cout << random_i_c << " ";
+			cout << random_i_c << " " << random_i_o << "\n";
+
+			coin_y = vector[random_i_c];
+			coin_x = 800;
 		}
 
 		if (score >= pct && pct <= 15000)
@@ -172,8 +196,6 @@ void drawScene(void)
 	glPushMatrix();
 	glTranslated(car_x_pos, j, 0.0);
 
-
-
 	glColor3f(0.996, 0.365, 0.149);
 	glRecti(-45, -15, 45, 15);
 
@@ -184,7 +206,6 @@ void drawScene(void)
 		rdj = -8;
 		rds = 8;
 	}
-
 
 	glPopMatrix();
 	glPopMatrix();
@@ -203,11 +224,28 @@ void drawScene(void)
 
 	//desenam a doua masina (adversara)
 	glPushMatrix();
-	glTranslated(loc_vert, height, 0.0);
+	glTranslated(car_obstacle_x, car_obstacle_y, 0.0);
 
 	glColor3f(0.471, 0.667, 0.949);
 	glRecti(-45, -15, 45, 15);
 
+	glPopMatrix();
+
+	//draw coin
+	glPushMatrix();
+	glTranslated(coin_x, coin_y, 0.0);
+
+	glColor3f(1, 0.84, 0.33);
+
+	glBegin(GL_POLYGON);
+	glVertex2f(0, 0); // centre of the coin
+	for (int index = 0; index <= 50; index++) {
+		float angle = index * 2.0f * 3.14 / 50;
+		float cx = 15 * cosf(angle);
+		float cy = 20 * sinf(angle);
+		glVertex2f(cx, cy);
+	}
+	glEnd();
 
 	glPopMatrix();
 
