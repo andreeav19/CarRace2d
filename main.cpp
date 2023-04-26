@@ -26,6 +26,7 @@ double car_obstacle_x = 800;
 double car_obstacle_y = vector[rand() % 3];
 double coin_x = 800;
 double coin_y = ((int)car_obstacle_y + 160) % 320;
+int coin_exists = rand() % 2;
 
 int score = 0;
 double timp = 0.15;
@@ -81,9 +82,11 @@ void startgame(void)
 			car_obstacle_y = vector[random_i_o];
 			cout << "Score:  " << score << endl;
 			car_obstacle_x = 800;
+
+			coin_exists = rand() % 2;
 		}
 
-		if (coin_x < -150)
+		if (coin_exists && coin_x < -150)
 		{
 			cout << random_i_c << " ";
 			cout << random_i_c << " " << random_i_o << "\n";
