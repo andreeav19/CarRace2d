@@ -75,6 +75,12 @@ void startgame(void)
 		// ensure that obstacles and coins are not on the same line
 		random_i_c = (random_i_c != random_i_o) ? random_i_c : (random_i_c + 1) % 3;
 
+		if (coin_exists && abs(car_x_pos - coin_x) <= 50 && abs(j - coin_y) <= 25) {
+			score += 50;
+			cout << "Score:  " << score << endl;
+			coin_x = -200;
+			coin_exists = 0;
+		}
 
 		if (car_obstacle_x < -150)
 		{
@@ -88,9 +94,6 @@ void startgame(void)
 
 		if (coin_exists && coin_x < -150)
 		{
-			cout << random_i_c << " ";
-			cout << random_i_c << " " << random_i_o << "\n";
-
 			coin_y = vector[random_i_c];
 			coin_x = 800;
 		}
