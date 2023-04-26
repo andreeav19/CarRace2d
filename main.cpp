@@ -29,9 +29,9 @@ double coin_y = ((int)car_obstacle_y + 160) % 320;
 int coin_exists = rand() % 2;
 
 int score = 0;
-double timp = 0.15;
-int pct = 1000;
-double rsj, rdj, rss, rds = 0;
+double speed = 0.15;
+int points = 1000;
+double rbl, rbr, rtl, rtr = 0;
 
 void init(void)
 {
@@ -42,12 +42,12 @@ void init(void)
 
 void RenderString(float x, float y, void* font, const unsigned char* string)
 {
-
 	glColor3f(0.0f, 0.0f, 0.0f);
 	glRasterPos2f(x, y);
 
 	glutBitmapString(font, string);
 }
+
 void startgame(void)
 {
 	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 80)
@@ -62,12 +62,12 @@ void startgame(void)
 		if (thirdIntermittentLineXTranslation < -2125) {
 			thirdIntermittentLineXTranslation = -850;
 		}
-		firstIntermittentLineXTranslation -=  2 * timp;
-		secondIntermittentLineXTranslation -= 2 * timp;
-		thirdIntermittentLineXTranslation -= 2 * timp;
+		firstIntermittentLineXTranslation -=  2 * speed;
+		secondIntermittentLineXTranslation -= 2 * speed;
+		thirdIntermittentLineXTranslation -= 2 * speed;
 
-		car_obstacle_x -= timp;
-		coin_x -= timp;
+		car_obstacle_x -= speed;
+		coin_x -= speed;
 
 		int random_i_o = rand() % 3; // random index for obstacle
 		int random_i_c = rand() % 3; // random index for coin
@@ -98,10 +98,10 @@ void startgame(void)
 			coin_x = 800;
 		}
 
-		if (score >= pct && pct <= 15000)
+		if (score >= points && points <= 15000)
 		{
-			timp += 0.1;
-			pct += 1000;
+			speed += 0.1;
+			points += 1000;
 		}
 
 		glutPostRedisplay();
@@ -118,40 +118,40 @@ void drawScene(void)
 
 	glColor3f(0.55, 0.788, 0.451);
 
-	// Iarba de jos
+	// Bottom grass
 	glBegin(GL_POLYGON);
-	glVertex2i(-100, -140);// Stanga jos
-	glVertex2i(700, -140); // Dreapta jos
-	glVertex2i(700, -80);  // Dreapta sus
-	glVertex2i(-100, -80); // Stanga sus
+	glVertex2i(-100, -140);// bottom left
+	glVertex2i(700, -140); // bottom right
+	glVertex2i(700, -80);  // top right
+	glVertex2i(-100, -80); // top left
 	glEnd();
 
-	// Iarba de sus
+	// Top grass
 	glBegin(GL_POLYGON);
-	glVertex2i(-100, 400);// Stanga jos
-	glVertex2i(700, 400); // Dreapta jos
-	glVertex2i(700, 460); // Dreapta sus
-	glVertex2i(-100, 460);// Stanga sus
+	glVertex2i(-100, 400);// bottom left
+	glVertex2i(700, 400); // bottom right
+	glVertex2i(700, 460); // top right
+	glVertex2i(-100, 460);// top left
 	glEnd();
 	RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"Depaseste masinile!");
 
-	// Delimitare sosea
+	// Road boundary
 	glLineWidth(3);
 	glColor3f(1, 1, 1);
 
-	// Delimitam soseaua de iarba partea de jos
+	// Boundary between road and bottom grass
 	glBegin(GL_LINES);
 	glVertex2i(-100, -80);
 	glVertex2i(1500, -80);
 	glEnd();
 
-	// Delimitam soseaua de iarba partea de sus
+	// Boundary between road and top grass
 	glBegin(GL_LINES);
 	glVertex2i(-100, 400);
 	glVertex2i(1500, 400);
 	glEnd();
 
-	// Liniile intrerupte
+	// Intermittent Lines
 	glPushMatrix();
 	glTranslated(firstIntermittentLineXTranslation, 0.0, 0.0);
 
@@ -198,7 +198,7 @@ void drawScene(void)
 	glPopMatrix();
 
 
-	//desenam masina
+	// Draw player car
 	glPushMatrix();
 	glTranslated(car_x_pos, j, 0.0);
 
@@ -207,10 +207,10 @@ void drawScene(void)
 
 	if (!gameRunning)
 	{
-		rsj = 8;
-		rss = -8;
-		rdj = -8;
-		rds = 8;
+		rbl = 8;
+		rtl = -8;
+		rbr = -8;
+		rtr = 8;
 	}
 
 	glPopMatrix();
@@ -228,7 +228,7 @@ void drawScene(void)
 		contor = 0;
 	}
 
-	//desenam a doua masina (adversara)
+	// Draw car obstacle
 	glPushMatrix();
 	glTranslated(car_obstacle_x, car_obstacle_y, 0.0);
 
@@ -237,7 +237,7 @@ void drawScene(void)
 
 	glPopMatrix();
 
-	//draw coin
+	// Draw coin
 	glPushMatrix();
 	glTranslated(coin_x, coin_y, 0.0);
 
@@ -271,7 +271,7 @@ void reshape(int w, int h)
 	glLoadIdentity();
 }
 
-void miscasus(void)
+void moveCarUp(void)
 {
 	if (gameRunning)
 	{
@@ -280,7 +280,19 @@ void miscasus(void)
 			contor = 1;
 			j += 1;
 		}
+		glutPostRedisplay();
+	}
+}
 
+void moveCarDown(void)
+{
+	if (gameRunning)
+	{
+		if (j > 0)
+		{
+			contor = -1;
+			j -= 1;
+		}
 		glutPostRedisplay();
 	}
 }
@@ -289,7 +301,7 @@ void moveCarForwards(void) {
 	if (gameRunning) {
 		if (car_x_pos < 650) {
 			car_x_pos += 7;
-			timp += 0.01;
+			speed += 0.01;
 		}
 		glutPostRedisplay();
 	}
@@ -299,24 +311,8 @@ void moveCarBackwards(void) {
 	if (gameRunning) {
 		if (car_x_pos > 0) {
 			car_x_pos -= 7;
-			timp -= 0.01;
+			speed -= 0.01;
 		}
-		glutPostRedisplay();
-	}
-}
-
-void miscajos(void)
-{
-	if (gameRunning)
-	{
-		if (j > 0)
-		{
-			contor = -1;
-			j -= 1;
-
-
-		}
-
 		glutPostRedisplay();
 	}
 }
@@ -325,10 +321,10 @@ void keyboard(int key, int x, int y)
 {
 	switch (key) {
 		case GLUT_KEY_UP:
-			miscasus();
+			moveCarUp();
 			break;
 		case GLUT_KEY_DOWN:
-			miscajos();
+			moveCarDown();
 			break;
 		case GLUT_KEY_RIGHT:
 			moveCarForwards();
@@ -340,14 +336,13 @@ void keyboard(int key, int x, int y)
 
 }
 
-
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutInitWindowSize(800, 600);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("Depaseste masinile - mini game");
+	glutCreateWindow("Outrun the cars! - mini game");
 	init();
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(reshape);
