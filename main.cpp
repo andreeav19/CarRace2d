@@ -70,7 +70,7 @@ void resetGame() {
 
 
 void startgame(void) {
-	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 80)
+	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 90)
 	{
 
 		if (firstIntermittentLineXTranslation < -1275) {
@@ -377,6 +377,58 @@ void drawObstacleCar() {
 
 }
 
+void drawCoin() {
+	glColor3f(1, 0.84, 0.33);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float cx = 15 * cosf(angle);
+		float cy = 20 * sinf(angle);
+		glVertex2f(cx, cy);
+	}
+	glEnd();
+
+	glColor3f(0.92, 0.71, 0.17);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float cx = 13 * cosf(angle);
+		float cy = 18 * sinf(angle);
+		glVertex2f(cx, cy);
+	}
+	glEnd();
+
+	glColor3f(1, 0.84, 0.33);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float cx = 11 * cosf(angle);
+		float cy = 16 * sinf(angle);
+		glVertex2f(cx, cy);
+	}
+	glEnd();
+
+	// draw crown
+	glColor3f(0.92, 0.71, 0.17);
+
+	glBegin(GL_POLYGON);
+	glVertex2f(0, 0);
+	glVertex2f(-8.0, 2.0);
+	glVertex2f(-4.0, -2.0);
+	glVertex2f(0.0, 6.0);
+	glVertex2f(4.0, -2.0);
+	glVertex2f(8.0, 2.0);
+	glVertex2f(8.0, -6.0);
+	glVertex2f(-8.0, -6.0);
+	glVertex2f(-8.0, 2.0);
+
+	glEnd();
+
+}
+
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -501,17 +553,7 @@ void drawScene(void)
 	glPushMatrix();
 	glTranslated(coin_x, coin_y, 0.0);
 
-	glColor3f(1, 0.84, 0.33);
-
-	glBegin(GL_POLYGON);
-	glVertex2f(0, 0); // centre of the coin
-	for (int index = 0; index <= sides; index++) {
-		float angle = index * 2.0f * PI / sides;
-		float cx = 15 * cosf(angle);
-		float cy = 20 * sinf(angle);
-		glVertex2f(cx, cy);
-	}
-	glEnd();
+	drawCoin();
 
 	glPopMatrix();
 
