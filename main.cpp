@@ -3,6 +3,8 @@
 #include <math.h>
 #include <GL/freeglut.h>
 
+
+
 using namespace std;
 
 GLdouble left_m = -100.0;
@@ -325,8 +327,8 @@ void moveCarDown(void)
 void moveCarForwards(void) {
 	if (gameRunning) {
 		if (car_x_pos < 650) {
-			car_x_pos += 7;
-			speed += 0.01;
+			car_x_pos += 0.5;
+			speed += 0.0005;
 		}
 		glutPostRedisplay();
 	}
@@ -335,8 +337,8 @@ void moveCarForwards(void) {
 void moveCarBackwards(void) {
 	if (gameRunning) {
 		if (car_x_pos > 0) {
-			car_x_pos -= 7;
-			speed -= 0.01;
+			car_x_pos -= 0.5;
+			speed -= 0.0005;
 		}
 		glutPostRedisplay();
 	}
@@ -357,25 +359,6 @@ void miscajos(void)
 	}
 }
 
-void keyboard(int key, int x, int y)
-{
-	switch (key) {
-	case GLUT_KEY_UP:
-		moveCarUp();
-		break;
-	case GLUT_KEY_DOWN:
-		moveCarDown();
-		break;
-	case GLUT_KEY_RIGHT:
-		moveCarForwards();
-		break;
-	case GLUT_KEY_LEFT:
-		moveCarBackwards();
-		break;
-	}
-
-}
-
 void mouse(int button, int state, int mx, int my)
 {
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
@@ -387,6 +370,36 @@ void mouse(int button, int state, int mx, int my)
 			if (!gameRunning)
 				resetGame();
 		}
+	}
+}
+
+bool keys[256]; // array to store the state of each key
+
+void keyboard(int key, int x, int y)
+{
+	keys[key] = true; // set the corresponding element to true when a key is pressed
+
+	// handling these two cases here because handling in handleKeys() makes the car move up two lanes with a slight keypress making precise movements hard to achieve
+	if (key == GLUT_KEY_UP) {
+		moveCarUp();
+	}
+	if (key == GLUT_KEY_DOWN) {
+		moveCarDown();
+	}
+}
+
+void keyboardUp(int key, int x, int y)
+{
+	keys[key] = false; // set the corresponding element to false when a key is released
+}
+
+void handleKeys()
+{
+	if (keys[GLUT_KEY_RIGHT]) {
+		moveCarForwards();
+	}
+	if (keys[GLUT_KEY_LEFT]) {
+		moveCarBackwards();
 	}
 }
 
@@ -402,6 +415,9 @@ int main(int argc, char** argv)
 	glutReshapeFunc(reshape);
 	glutMouseFunc(mouse);
 	glutSpecialFunc(keyboard);
+	glutSpecialUpFunc(keyboardUp);
+
+	glutIdleFunc(handleKeys);
 
 	glutMainLoop();
 }
