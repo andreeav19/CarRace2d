@@ -828,12 +828,15 @@ void drawScene(void)
 	glPopMatrix();
 
 	// Draw coin
-	glPushMatrix();
-	glTranslated(coin_x, coin_y, 0.0);
+	if (coin_exists) {
 
-	drawCoin();
+		glPushMatrix();
+		glTranslated(coin_x, coin_y, 0.0);
 
-	glPopMatrix();
+		drawCoin();
+
+		glPopMatrix();
+	}
 
 	// Draw fuel tank
 	glPushMatrix();
