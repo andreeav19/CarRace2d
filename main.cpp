@@ -3,8 +3,6 @@
 #include <math.h>
 #include <GL/freeglut.h>
 
-
-
 using namespace std;
 
 GLdouble left_m = -100.0;
@@ -35,9 +33,12 @@ double speed = 0.15;
 int points = 1000;
 double rbl, rbr, rtl, rtr = 0;
 
+const float PI = 3.14;
+const int sides = 50;
+
 void init(void)
 {
-	glClearColor(0.98, 0.929, 0.792, 0.0);
+	glClearColor(0.56, 0.58, 0.58, 0.0);
 	glMatrixMode(GL_PROJECTION);
 	glOrtho(left_m, right_m, bottom_m, top_m, -1.0, 1.0);
 }
@@ -69,7 +70,7 @@ void resetGame() {
 
 
 void startgame(void) {
-	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 80)
+	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 90)
 	{
 
 		if (firstIntermittentLineXTranslation < -1275) {
@@ -130,6 +131,304 @@ void startgame(void) {
 	}
 }
 
+void drawPlayerCar() {
+
+	// draw windows
+
+	glColor3f(0.88, 0.24, 0.22);
+
+	float radius = 25;
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * PI / sides;
+		float x = radius * cos(angle);
+		float y = radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+
+	glColor3f(0.6, 0.92, 0.94);
+
+	radius = 20;
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * PI / sides;
+		float x = radius * cos(angle);
+		float y = radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glColor3f(0.88, 0.24, 0.22);
+
+	glRecti(-3, 0, 0, 24); // separate windows
+	glRecti(-45, -10, 45, 10);	// car body
+
+	// draw wheels
+
+	glColor3f(0.22, 0.23, 0.23);
+
+	radius = 8;
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = 20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = -20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glColor3f(0.35, 0.35, 0.35);
+
+	radius = 5;
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = 20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = -20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glColor3f(0.22, 0.23, 0.23);
+
+	glLineWidth(2);
+	glBegin(GL_LINES);
+	glVertex2f(17.0f, -5.0f);
+	glVertex2f(24.0f, -15.0f);
+
+	glVertex2f(24.0f, -5.0f);
+	glVertex2f(17.0f, -15.0f);
+
+	glVertex2f(25.5f, -10.0f);
+	glVertex2f(15.5f, -10.0f);
+
+	glVertex2f(-17.0f, -5.0f);
+	glVertex2f(-24.0f, -15.0f);
+
+	glVertex2f(-24.0f, -5.0f);
+	glVertex2f(-17.0f, -15.0f);
+
+	glVertex2f(-25.5f, -10.0f);
+	glVertex2f(-15.5f, -10.0f);
+
+	glEnd();
+
+	// draw doors
+
+	glColor3f(0.63, 0.24, 0.2);
+
+	glLineWidth(3);
+	glBegin(GL_LINES);
+	glVertex2f(-15.0f, 5.0f);
+	glVertex2f(-8.0f, 5.0f);
+
+	glVertex2f(8.0f, 5.0f);
+	glVertex2f(1.0f, 5.0f);
+	glEnd();
+
+	// draw headlights
+	glColor3f(0.78, 0.74, 0.55);
+	glRecti(35, 5, 45, 10);
+
+	glColor3f(0.7, 0.34, 0.31);
+	glRecti(-45, 5, -40, 10);
+
+}
+
+void drawObstacleCar() {
+
+	// draw windows
+	glColor3f(0.2, 0.43, 0.91);
+
+	glBegin(GL_POLYGON);
+	glVertex2f(-15.0f, 25.0f);
+	glVertex2f(15.0f, 25.0f);
+	glVertex2f(25.0f, 10.0f);
+	glVertex2f(-25.0f, 10.0f);
+	glEnd();
+
+	glColor3f(0.6, 0.92, 0.94);
+
+	glBegin(GL_POLYGON);
+	glVertex2f(-13.0f, 21.0f);
+	glVertex2f(13.0f, 21.0f);
+	glVertex2f(18.0f, 12.0f);
+	glVertex2f(-18.0f, 12.0f);
+	glEnd();
+
+	glColor3f(0.2, 0.43, 0.91);
+
+	glRecti(3, 0, 0, 24); // separate windows
+	glRecti(-45, -10, 45, 10);	// car body
+
+	// draw wheels
+
+	glColor3f(0.22, 0.23, 0.23);
+
+	float radius = 8;
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = 20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = -20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glColor3f(0.35, 0.35, 0.35);
+
+	radius = 5;
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = 20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = 2 * index * PI / sides;
+		float x = -20.5 + radius * cos(angle);
+		float y = -10 + radius * sin(angle);
+		glVertex2f(x, y);
+	}
+	glEnd();
+
+	glColor3f(0.22, 0.23, 0.23);
+
+	glLineWidth(2);
+	glBegin(GL_LINES);
+	glVertex2f(17.0f, -5.0f);
+	glVertex2f(24.0f, -15.0f);
+
+	glVertex2f(24.0f, -5.0f);
+	glVertex2f(17.0f, -15.0f);
+
+	glVertex2f(25.5f, -10.0f);
+	glVertex2f(15.5f, -10.0f);
+
+	glVertex2f(-17.0f, -5.0f);
+	glVertex2f(-24.0f, -15.0f);
+
+	glVertex2f(-24.0f, -5.0f);
+	glVertex2f(-17.0f, -15.0f);
+
+	glVertex2f(-25.5f, -10.0f);
+	glVertex2f(-15.5f, -10.0f);
+
+	glEnd();
+
+	// draw doors
+
+	glColor3f(0.15, 0.32, 0.68);
+
+	glLineWidth(3);
+	glBegin(GL_LINES);
+	glVertex2f(-8.0f, 5.0f);
+	glVertex2f(-1.0f, 5.0f);
+
+	glVertex2f(15.0f, 5.0f);
+	glVertex2f(8.0f, 5.0f);
+	glEnd();
+
+	// draw headlights
+	glColor3f(0.78, 0.74, 0.55);
+	glRecti(-35, 5, -45, 10);
+
+	glColor3f(0.7, 0.34, 0.31);
+	glRecti(45, 5, 40, 10);
+
+}
+
+void drawCoin() {
+	glColor3f(1, 0.84, 0.33);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float cx = 15 * cosf(angle);
+		float cy = 20 * sinf(angle);
+		glVertex2f(cx, cy);
+	}
+	glEnd();
+
+	glColor3f(0.92, 0.71, 0.17);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float cx = 13 * cosf(angle);
+		float cy = 18 * sinf(angle);
+		glVertex2f(cx, cy);
+	}
+	glEnd();
+
+	glColor3f(1, 0.84, 0.33);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float cx = 11 * cosf(angle);
+		float cy = 16 * sinf(angle);
+		glVertex2f(cx, cy);
+	}
+	glEnd();
+
+	// draw crown
+	glColor3f(0.92, 0.71, 0.17);
+
+	glBegin(GL_POLYGON);
+	glVertex2f(0, 0);
+	glVertex2f(-8.0, 2.0);
+	glVertex2f(-4.0, -2.0);
+	glVertex2f(0.0, 6.0);
+	glVertex2f(4.0, -2.0);
+	glVertex2f(8.0, 2.0);
+	glVertex2f(8.0, -6.0);
+	glVertex2f(-8.0, -6.0);
+	glVertex2f(-8.0, 2.0);
+
+	glEnd();
+
+}
+
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -152,7 +451,7 @@ void drawScene(void)
 	glVertex2i(700, 460); // top right
 	glVertex2i(-100, 460);// top left
 	glEnd();
-	RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"Depaseste masinile!");
+	RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"Outrun the cars!");
 
 	// Road boundary
 	glLineWidth(3);
@@ -221,8 +520,7 @@ void drawScene(void)
 	glPushMatrix();
 	glTranslated(car_x_pos, j, 0.0);
 
-	glColor3f(0.996, 0.365, 0.149);
-	glRecti(-45, -15, 45, 15);
+	drawPlayerCar();
 
 	if (!gameRunning)
 	{
@@ -243,12 +541,11 @@ void drawScene(void)
 		contor = 0;
 	}
 
-	// Draw car obstacle
+	// Draw obstacle car
 	glPushMatrix();
 	glTranslated(car_obstacle_x, car_obstacle_y, 0.0);
 
-	glColor3f(0.471, 0.667, 0.949);
-	glRecti(-45, -15, 45, 15);
+	drawObstacleCar();
 
 	glPopMatrix();
 
@@ -256,17 +553,7 @@ void drawScene(void)
 	glPushMatrix();
 	glTranslated(coin_x, coin_y, 0.0);
 
-	glColor3f(1, 0.84, 0.33);
-
-	glBegin(GL_POLYGON);
-	glVertex2f(0, 0); // centre of the coin
-	for (int index = 0; index <= 50; index++) {
-		float angle = index * 2.0f * 3.14 / 50;
-		float cx = 15 * cosf(angle);
-		float cy = 20 * sinf(angle);
-		glVertex2f(cx, cy);
-	}
-	glEnd();
+	drawCoin();
 
 	glPopMatrix();
 
