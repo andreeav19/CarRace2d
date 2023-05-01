@@ -922,7 +922,6 @@ void drawScene(void)
 
 	if (!gameRunning) {
 		RenderString(270.0f, 430.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
-		RenderString(225.0f, 410.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
 		if (fuel <= 0) {
 			RenderString(205.0f, 400.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
 		}
