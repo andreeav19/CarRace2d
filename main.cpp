@@ -30,10 +30,16 @@ int coin_exists = rand() % 2;
 double flowers_x = 0;
 double flowers_y = 0;
 
+float fuel_x = 1150;
+float fuel_y = ((int)car_obstacle_y) % 320;
+int fuel_exists = rand() % 5;
+
 int score = 0;
-double speed = 0.15;
+double speed = 0.25;
 int points = 1000;
 double rbl, rbr, rtl, rtr = 0;
+
+float fuel = 100;
 
 const float PI = 3.14;
 const int sides = 50;
@@ -70,12 +76,20 @@ void resetGame() {
 	speed = 0.15;
 	points = 1000;
 	rbl, rbr, rtl, rtr = 0;
+	fuel = 100;
+	fuel_x = 1150;
+	fuel_y = ((int)car_obstacle_y) % 320;
+	fuel_exists = rand() % 5;
+	coin_x = 800;
+	coin_y = ((int)car_obstacle_y + 160) % 320;
+	coin_exists = rand() % 2;
 }
 
 
 void startgame(void) {
-	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 90)
+	if (((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 90) && fuel > 0)
 	{
+		fuel -= 0.01;
 		if (flowers_x < -800) {
 			flowers_x = 0;
 		}
@@ -97,9 +111,11 @@ void startgame(void) {
 
 		car_obstacle_x -= speed;
 		coin_x -= speed;
+		fuel_x -= speed / 1.1;
 
 		int random_i_o = rand() % 3; // random index for obstacle
 		int random_i_c = rand() % 3; // random index for coin
+		int random_i_f = rand() % 3;
 
 		// ensure that obstacles and coins are not on the same line
 		random_i_c = (random_i_c != random_i_o) ? random_i_c : (random_i_c + 1) % 3;
@@ -111,6 +127,12 @@ void startgame(void) {
 			coin_exists = 0;
 		}
 
+		if (abs(car_x_pos - fuel_x) <= 40 && abs(j - fuel_y) <= 35) {
+			fuel = 100;
+			fuel_x = -200;
+			fuel_exists = 0;
+		}
+
 		if (car_obstacle_x < -150)
 		{
 			score += 100;
@@ -119,12 +141,19 @@ void startgame(void) {
 			car_obstacle_x = 800;
 
 			coin_exists = rand() % 2;
+			fuel_exists = rand() % 5;
 		}
 
 		if (coin_exists && coin_x < -150)
 		{
 			coin_y = vector[random_i_c];
 			coin_x = 800;
+		}
+
+		if (fuel_exists == 2 && fuel_x < -150)
+		{
+			fuel_y = vector[random_i_f];
+			fuel_x = 1150;
 		}
 
 		if (score >= points && points <= 15000)
@@ -138,6 +167,29 @@ void startgame(void) {
 	else {
 		gameRunning = 0;
 	}
+}
+
+void drawMeter(GLfloat value) {
+
+	// Draw the meter background
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(-90.0, -120.0);
+	glVertex2f(-90.0, -110.0);
+	glVertex2f(110.0, -110.0);
+	glVertex2f(110.0, -120.0);
+	glEnd();
+
+	// Draw the meter fill
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(-90.0, -120.0);
+	glVertex2f(-90.0, -110.0);
+	glVertex2f(-90.0 + value * 2.0, -110.0);
+	glVertex2f(-90.0 + value * 2.0, -120.0);
+	glEnd();
+
+	glPopMatrix();
 }
 
 void drawPlayerCar() {
@@ -384,6 +436,54 @@ void drawObstacleCar() {
 	glColor3f(0.7, 0.34, 0.31);
 	glRecti(45, 5, 40, 10);
 
+}
+
+void drawFuelTank() {
+	// red body
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(0.0, 0.0);
+	glVertex2f(0.0, 30.0);
+	glVertex2f(30.0, 30.0);
+	glVertex2f(30.0, -0.0);
+	glEnd();
+
+	// black cap
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(5.0, 30.0);
+	glVertex2f(5.0, 35.0);
+	glVertex2f(10.0, 35.0);
+	glVertex2f(10.0, 30.0);
+	glEnd();
+
+	// red handle
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(30.0, 25.0);
+	glVertex2f(35.0, 25.0);
+	glVertex2f(35.0, 20.0);
+	glVertex2f(30.0, 20.0);
+	glEnd();
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(30.0, 5.0);
+	glVertex2f(35.0, 5.0);
+	glVertex2f(35.0, 10.0);
+	glVertex2f(30.0, 10.0);
+	glEnd();
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(35.0, 25.0);
+	glVertex2f(35.0, 5.0);
+	glVertex2f(33.0, 5.0);
+	glVertex2f(33.0, 25.0);
+	glEnd();
+
+	//F text
+	RenderString(13.0f, 11.0f, GLUT_BITMAP_HELVETICA_12, (const unsigned char*)"F");
 }
 
 void drawCoin() {
@@ -735,8 +835,22 @@ void drawScene(void)
 
 	glPopMatrix();
 
+	// Draw fuel tank
+	glPushMatrix();
+	glTranslated(fuel_x, fuel_y, 0.0);
+
+	drawFuelTank();
+
+	glPopMatrix();
+
+	// Fuel gauge
+	drawMeter(fuel);
+
 	if (!gameRunning) {
-		RenderString(250.0f, 200.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
+		RenderString(250.0f, 200.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER!");
+		if (fuel <= 0) {
+			RenderString(205.0f, 100.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
+		}
 		glColor3f(1, 0.4, 0.3);
 		glBegin(GL_QUAD_STRIP);
 		glVertex2f(260.0, 180.0);
@@ -793,7 +907,8 @@ void moveCarForwards(void) {
 	if (gameRunning) {
 		if (car_x_pos < 650) {
 			car_x_pos += 0.5;
-			speed += 0.0005;
+			speed += 0.002;
+			fuel -= 0.02;
 		}
 		glutPostRedisplay();
 	}
@@ -803,7 +918,7 @@ void moveCarBackwards(void) {
 	if (gameRunning) {
 		if (car_x_pos > 0) {
 			car_x_pos -= 0.5;
-			speed -= 0.0005;
+			speed -= 0.002;
 		}
 		glutPostRedisplay();
 	}
