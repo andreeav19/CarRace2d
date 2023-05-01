@@ -2,6 +2,10 @@
 #include <windows.h>
 #include <math.h>
 #include <GL/freeglut.h>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -11,6 +15,8 @@ GLdouble bottom_m = -140.0;
 GLdouble top_m = 460.0;
 
 double gameRunning = 1;
+boolean score_added = false;
+boolean score_read = false;
 double j = 0.0;
 double i = 0.0;
 
@@ -21,17 +27,26 @@ double thirdIntermittentLineXTranslation = 0.0;
 double car_x_pos = 0.0;
 double contor = 0;
 
-int vector[3] = { 0, 160, 320 };
+int arr[3] = { 0, 160, 320 };
 double car_obstacle_x = 800;
-double car_obstacle_y = vector[rand() % 3];
+double car_obstacle_y = arr[rand() % 3];
 double coin_x = 800;
 double coin_y = ((int)car_obstacle_y + 160) % 320;
 int coin_exists = rand() % 2;
+double flowers_x = 0;
+double flowers_y = 0;
+
+float fuel_x = 1150;
+float fuel_y = ((int)car_obstacle_y) % 320;
+int fuel_exists = rand() % 5;
 
 int score = 0;
-double speed = 0.15;
+vector<int> scores;
+double speed = 0.25;
 int points = 1000;
 double rbl, rbr, rtl, rtr = 0;
+
+float fuel = 100;
 
 const float PI = 3.14;
 const int sides = 50;
@@ -43,36 +58,71 @@ void init(void)
 	glOrtho(left_m, right_m, bottom_m, top_m, -1.0, 1.0);
 }
 
-void RenderString(float x, float y, void* font, const unsigned char* string)
+void RenderString(float x, float y, void* font, const unsigned char* string, GLfloat r = 0.0f, GLfloat g = 0.0f, GLfloat b = 0.0f)
 {
-	glColor3f(0.0f, 0.0f, 0.0f);
+	glColor3f(r, g, b);
 	glRasterPos2f(x, y);
 
 	glutBitmapString(font, string);
 }
 
+void writeLeaderboard() {
+	ofstream outFile("scores.txt", ios::app);
+	if (!outFile) {
+		cerr << "Failed to create/open the file!" << endl;
+	}
+	outFile << score << endl;
+	outFile.close();
+}
+void readLeaderboard() {
+	std::ifstream inFile("scores.txt");
+	if (inFile.is_open())
+	{
+		int score;
+		while (inFile >> score)
+		{
+			scores.push_back(score);
+		}
+		inFile.close();
+	}
+}
+
 void resetGame() {
 	gameRunning = 1;
+	score_added = false;
+	score_read = false;
 	j = 0.0;
 	i = 0.0;
+	flowers_x = 0;
+	flowers_y = 0;
 	firstIntermittentLineXTranslation = 0.0;
 	secondIntermittentLineXTranslation = 0.0;
 	thirdIntermittentLineXTranslation = 0.0;
 	car_x_pos = 0.0;
 	contor = 0;
 	car_obstacle_x = 800;
-	car_obstacle_y = vector[rand() % 3];
+	car_obstacle_y = arr[rand() % 3];
 	score = 0;
 	speed = 0.15;
 	points = 1000;
 	rbl, rbr, rtl, rtr = 0;
+	fuel = 100;
+	fuel_x = 1150;
+	fuel_y = ((int)car_obstacle_y) % 320;
+	fuel_exists = rand() % 5;
+	coin_x = 800;
+	coin_y = ((int)car_obstacle_y + 160) % 320;
+	coin_exists = rand() % 2;
 }
 
 
 void startgame(void) {
-	if ((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 90)
+	if (((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 90) && fuel > 0)
 	{
-
+		fuel -= 0.01;
+		if (flowers_x < -800) {
+			flowers_x = 0;
+		}
 		if (firstIntermittentLineXTranslation < -1275) {
 			firstIntermittentLineXTranslation = 0;
 		}
@@ -82,15 +132,20 @@ void startgame(void) {
 		if (thirdIntermittentLineXTranslation < -2125) {
 			thirdIntermittentLineXTranslation = -850;
 		}
+
+		flowers_x -= 2 * speed;
+
 		firstIntermittentLineXTranslation -= 2 * speed;
 		secondIntermittentLineXTranslation -= 2 * speed;
 		thirdIntermittentLineXTranslation -= 2 * speed;
 
 		car_obstacle_x -= speed;
 		coin_x -= speed;
+		fuel_x -= speed / 1.1;
 
 		int random_i_o = rand() % 3; // random index for obstacle
 		int random_i_c = rand() % 3; // random index for coin
+		int random_i_f = rand() % 3;
 
 		// ensure that obstacles and coins are not on the same line
 		random_i_c = (random_i_c != random_i_o) ? random_i_c : (random_i_c + 1) % 3;
@@ -102,20 +157,33 @@ void startgame(void) {
 			coin_exists = 0;
 		}
 
+		if (abs(car_x_pos - fuel_x) <= 40 && abs(j - fuel_y) <= 35) {
+			fuel = 100;
+			fuel_x = -200;
+			fuel_exists = 0;
+		}
+
 		if (car_obstacle_x < -150)
 		{
 			score += 100;
-			car_obstacle_y = vector[random_i_o];
+			car_obstacle_y = arr[random_i_o];
 			cout << "Score:  " << score << endl;
 			car_obstacle_x = 800;
 
 			coin_exists = rand() % 2;
+			fuel_exists = rand() % 5;
 		}
 
 		if (coin_exists && coin_x < -150)
 		{
-			coin_y = vector[random_i_c];
+			coin_y = arr[random_i_c];
 			coin_x = 800;
+		}
+
+		if (fuel_exists == 2 && fuel_x < -150)
+		{
+			fuel_y = arr[random_i_f];
+			fuel_x = 1150;
 		}
 
 		if (score >= points && points <= 15000)
@@ -128,7 +196,34 @@ void startgame(void) {
 	}
 	else {
 		gameRunning = 0;
+		if (!score_added) {
+			writeLeaderboard();
+			score_added = true;
+		}
 	}
+}
+
+void drawMeter(GLfloat value) {
+
+	// Draw the meter background
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(-90.0, -120.0);
+	glVertex2f(-90.0, -110.0);
+	glVertex2f(110.0, -110.0);
+	glVertex2f(110.0, -120.0);
+	glEnd();
+
+	// Draw the meter fill
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(-90.0, -120.0);
+	glVertex2f(-90.0, -110.0);
+	glVertex2f(-90.0 + value * 2.0, -110.0);
+	glVertex2f(-90.0 + value * 2.0, -120.0);
+	glEnd();
+
+	glPopMatrix();
 }
 
 void drawPlayerCar() {
@@ -377,6 +472,54 @@ void drawObstacleCar() {
 
 }
 
+void drawFuelTank() {
+	// red body
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(0.0, 0.0);
+	glVertex2f(0.0, 30.0);
+	glVertex2f(30.0, 30.0);
+	glVertex2f(30.0, -0.0);
+	glEnd();
+
+	// black cap
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(5.0, 30.0);
+	glVertex2f(5.0, 35.0);
+	glVertex2f(10.0, 35.0);
+	glVertex2f(10.0, 30.0);
+	glEnd();
+
+	// red handle
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(30.0, 25.0);
+	glVertex2f(35.0, 25.0);
+	glVertex2f(35.0, 20.0);
+	glVertex2f(30.0, 20.0);
+	glEnd();
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(30.0, 5.0);
+	glVertex2f(35.0, 5.0);
+	glVertex2f(35.0, 10.0);
+	glVertex2f(30.0, 10.0);
+	glEnd();
+
+	glColor3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_QUADS);
+	glVertex2f(35.0, 25.0);
+	glVertex2f(35.0, 5.0);
+	glVertex2f(33.0, 5.0);
+	glVertex2f(33.0, 25.0);
+	glEnd();
+
+	//F text
+	RenderString(13.0f, 11.0f, GLUT_BITMAP_HELVETICA_12, (const unsigned char*)"F");
+}
+
 void drawCoin() {
 	glColor3f(1, 0.84, 0.33);
 
@@ -429,10 +572,203 @@ void drawCoin() {
 
 }
 
+void drawFlower(char* color, float rotation) {
+
+	if (strcmp(color, "blue") == 0)
+		glColor3f(0.04, 0.54, 0.99);
+	else if (strcmp(color, "pink") == 0)
+		glColor3f(0.99, 0.58, 0.94);
+	else if (strcmp(color, "red") == 0)
+		glColor3f(1, 0.11, 0.33);
+	else if (strcmp(color, "purple") == 0)
+		glColor3f(0.71, 0.18, 0.79);
+	else
+		glColor3f(1.0, 1.0, 1.0);
+
+	float petalRadius = 3;
+	float polenRadius = 2;
+	int noPetals = 5;
+
+	glPushMatrix();
+	glRotated(rotation, 0.0, 0.0, 1.0);
+
+	for (int i = 0; i <= noPetals; i++) {
+		float a1 = i * 2 * PI / noPetals;
+		float tx = 5 * cosf(a1);
+		float ty = 5 * sinf(a1);
+
+		glPushMatrix();
+		glTranslated(tx, ty, 0.0);
+
+		glBegin(GL_POLYGON);
+		for (int index = 0; index <= sides; index++) {
+			float angle = index * 2.0f * PI / sides;
+			float px = petalRadius * cosf(angle);
+			float py = petalRadius * sinf(angle);
+			glVertex2f(px, py);
+		}
+		glEnd();
+
+		glPopMatrix();
+	}
+
+	glPopMatrix();
+
+	glColor3f(1, 0.83, 0.3);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float px = polenRadius * cosf(angle);
+		float py = polenRadius * sinf(angle);
+		glVertex2f(px, py);
+	}
+	glEnd();
+}
+
+void drawTopandBotFlowers() {
+	const char* flowerColors[] = {
+		// bottom
+		"purple",
+		"pink",
+		"blue",
+		"red",
+		"blue",
+		"pink",
+		"purple",
+		"pink",
+		"blue",
+		"red",
+		"blue",
+		"pink",
+
+		// top
+		"red",
+		"pink",
+		"blue",
+		"purple",
+		"red",
+		"red",
+		"pink",
+		"red",
+		"pink",
+		"blue",
+		"purple",
+		"red",
+		"red",
+		"pink"
+	};
+
+	float flowerTranslate[26][3] = {
+		// bottom
+		{-50, -100, 0},
+		{67, -113, 0},
+		{248, -130, 0},
+		{415, -100, 0},
+		{551, -130, 0},
+		{639, -98, 0},
+		{750, -100, 0},
+		{867, -113, 0},
+		{1048, -130, 0},
+		{1215, -100, 0},
+		{1351, -130, 0},
+		{1439, -98, 0},
+
+		// top
+		{-5, 411, 0},
+		{134, 426, 0},
+		{267, 423, 0},
+		{419, 418, 0},
+		{448, 432, 0},
+		{651, 441, 0},
+		{722, 428, 0},
+
+		{795, 411, 0},
+		{934, 426, 0},
+		{1067, 423, 0},
+		{1219, 418, 0},
+		{1248, 432, 0},
+		{1451, 441, 0},
+		{1522, 428, 0}
+	};
+
+	float flowerRotate[26] = {
+		// bottom
+		0.0,
+		45.0,
+		78.0,
+		125.0,
+		270.0,
+		150.0,
+		0.0,
+		45.0,
+		78.0,
+		125.0,
+		270.0,
+		150.0,
+
+		// top
+		34,
+		87,
+		264,
+		54,
+		90,
+		32.1,
+		172.5,
+		34,
+		87,
+		264,
+		54,
+		90,
+		32.1,
+		172.5
+	};
+
+	for (int i = 0; i < 26; i++) {
+		glPushMatrix();
+		glTranslated(flowerTranslate[i][0], flowerTranslate[i][1], flowerTranslate[i][2]);
+		drawFlower((char*)flowerColors[i], flowerRotate[i]);
+		glPopMatrix();
+	}
+}
+
+void drawRestartButton() {
+	glColor3f(1, 0.4, 0.3);
+	glBegin(GL_QUAD_STRIP);
+	glVertex2f(270.0, -65.0);
+	glVertex2f(270.0, -15.0);
+	glVertex2f(360.0, -65.0);
+	glVertex2f(360.0, -15.0);
+	glEnd();
+	RenderString(285.0f, -45.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"Restart");
+}
+void drawLeaderboard() {
+	int maxDisplayScores = 10;
+	if (!score_read) {
+		readLeaderboard();
+		sort(scores.rbegin(), scores.rend());
+		score_read = true;
+	}
+	RenderString(238.0f, 360.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"LEADERBOARD");
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0, 0.0, 0.0, 0.5);
+	glBegin(GL_QUADS);
+	glVertex2f(150.0f, 340.0f);
+	glVertex2f(475.0f, 340.0f);
+	glVertex2f(475.0f, 0.0f);
+	glVertex2f(150.0f, 0.0f);
+	glEnd();
+	glDisable(GL_BLEND);
+	for (int n = 0; n < scores.size() && n < maxDisplayScores; n++) {
+		string score_l = to_string(n + 1) + ". " + to_string(scores[n]) + " POINTS";
+		RenderString(250.0f, 310.0f - (n * 32.0f), GLUT_BITMAP_HELVETICA_18, (const unsigned char*)score_l.c_str(), 1.0f, 1.0f, 1.0f);
+	}
+}
+
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-
 
 	glColor3f(0.55, 0.788, 0.451);
 
@@ -451,7 +787,23 @@ void drawScene(void)
 	glVertex2i(700, 460); // top right
 	glVertex2i(-100, 460);// top left
 	glEnd();
-	RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"Outrun the cars!");
+
+	// Flowers
+	glPushMatrix();
+	glTranslated(flowers_x, 0.0, 0.0);
+
+	drawTopandBotFlowers();
+
+	glPopMatrix();
+
+	// Display text
+	if (gameRunning) {
+		RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"Outrun the cars!");
+		string score_str = "Score: " + to_string(score);
+		RenderString(-80.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)score_str.c_str());
+		// Fuel gauge
+		drawMeter(fuel);
+	}
 
 	// Road boundary
 	glLineWidth(3);
@@ -550,23 +902,32 @@ void drawScene(void)
 	glPopMatrix();
 
 	// Draw coin
-	glPushMatrix();
-	glTranslated(coin_x, coin_y, 0.0);
+	if (coin_exists) {
 
-	drawCoin();
+		glPushMatrix();
+		glTranslated(coin_x, coin_y, 0.0);
+
+		drawCoin();
+
+		glPopMatrix();
+	}
+
+	// Draw fuel tank
+	glPushMatrix();
+	glTranslated(fuel_x, fuel_y, 0.0);
+
+	drawFuelTank();
 
 	glPopMatrix();
 
 	if (!gameRunning) {
-		RenderString(250.0f, 200.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
-		glColor3f(1, 0.4, 0.3);
-		glBegin(GL_QUAD_STRIP);
-		glVertex2f(260.0, 180.0);
-		glVertex2f(260.0, 130.0);
-		glVertex2f(350.0, 180.0);
-		glVertex2f(350.0, 130.0);
-		glEnd();
-		RenderString(275.0f, 150.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"Restart");
+		RenderString(270.0f, 430.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
+		RenderString(225.0f, 410.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
+		if (fuel <= 0) {
+			RenderString(205.0f, 400.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
+		}
+		drawLeaderboard();
+		drawRestartButton();	
 	}
 
 	startgame();
@@ -615,7 +976,8 @@ void moveCarForwards(void) {
 	if (gameRunning) {
 		if (car_x_pos < 650) {
 			car_x_pos += 0.5;
-			speed += 0.0005;
+			speed += 0.002;
+			fuel -= 0.02;
 		}
 		glutPostRedisplay();
 	}
@@ -625,23 +987,8 @@ void moveCarBackwards(void) {
 	if (gameRunning) {
 		if (car_x_pos > 0) {
 			car_x_pos -= 0.5;
-			speed -= 0.0005;
+			speed -= 0.002;
 		}
-		glutPostRedisplay();
-	}
-}
-
-
-void miscajos(void)
-{
-	if (gameRunning)
-	{
-		if (j > 0)
-		{
-			contor = -1;
-			j -= 1;
-		}
-
 		glutPostRedisplay();
 	}
 }
@@ -653,7 +1000,7 @@ void mouse(int button, int state, int mx, int my)
 		double wx = (double)mx / glutGet(GLUT_WINDOW_WIDTH) * (right_m - left_m) + left_m;
 		double wy = (1.0 - (double)my / glutGet(GLUT_WINDOW_HEIGHT)) * (top_m - bottom_m) + bottom_m;
 
-		if (wx >= 260.0 && wx <= 350.0 && wy >= 130.0 && wy <= 180.0) {
+		if (wx >= 270.0 && wx <= 360.0 && wy >= -65 && wy <= -15) {
 			if (!gameRunning)
 				resetGame();
 		}
