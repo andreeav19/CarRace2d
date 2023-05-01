@@ -429,10 +429,67 @@ void drawCoin() {
 
 }
 
+void drawFlower(char* color, float rotation) {
+
+	if (strcmp(color, "blue") == 0)
+		glColor3f(0.04, 0.54, 0.99);
+	else if (strcmp(color, "pink") == 0)
+		glColor3f(0.99, 0.58, 0.94);
+	else if (strcmp(color, "red") == 0)
+		glColor3f(1, 0.11, 0.33);
+	else if (strcmp(color, "purple") == 0)
+		glColor3f(0.71, 0.18, 0.79);
+	else
+		glColor3f(1.0, 1.0, 1.0);
+
+	float petalRadius = 3;
+	float polenRadius = 2;
+	int noPetals = 5;
+
+	glPushMatrix();
+	glRotated(rotation, 0.0, 0.0, 1.0);
+
+	for (int i = 0; i <= noPetals; i++) {
+		float a1 = i * 2 * PI / noPetals;
+		float tx = 5 * cosf(a1);
+		float ty = 5 * sinf(a1);
+
+		glPushMatrix();
+		glTranslated(tx, ty, 0.0);
+
+		glBegin(GL_POLYGON);
+		for (int index = 0; index <= sides; index++) {
+			float angle = index * 2.0f * PI / sides;
+			float px = petalRadius * cosf(angle);
+			float py = petalRadius * sinf(angle);
+			glVertex2f(px, py);
+		}
+		glEnd();
+
+		glPopMatrix();
+	}
+
+	glPopMatrix();
+
+	glColor3f(1, 0.83, 0.3);
+
+	glBegin(GL_POLYGON);
+	for (int index = 0; index <= sides; index++) {
+		float angle = index * 2.0f * PI / sides;
+		float px = polenRadius * cosf(angle);
+		float py = polenRadius * sinf(angle);
+		glVertex2f(px, py);
+	}
+	glEnd();
+}
+
+
+
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	drawFlower((char*)"purple", 0.0);
 
 	glColor3f(0.55, 0.788, 0.451);
 
@@ -627,21 +684,6 @@ void moveCarBackwards(void) {
 			car_x_pos -= 0.5;
 			speed -= 0.0005;
 		}
-		glutPostRedisplay();
-	}
-}
-
-
-void miscajos(void)
-{
-	if (gameRunning)
-	{
-		if (j > 0)
-		{
-			contor = -1;
-			j -= 1;
-		}
-
 		glutPostRedisplay();
 	}
 }
