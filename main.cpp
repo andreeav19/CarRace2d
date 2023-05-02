@@ -17,6 +17,7 @@ GLdouble top_m = 460.0;
 double gameRunning = 1;
 boolean score_added = false;
 boolean score_read = false;
+boolean sound_played = false;
 double j = 0.0;
 double i = 0.0;
 
@@ -91,6 +92,7 @@ void resetGame() {
 	gameRunning = 1;
 	score_added = false;
 	score_read = false;
+	sound_played = false;
 	j = 0.0;
 	i = 0.0;
 	flowers_x = 0;
@@ -115,7 +117,6 @@ void resetGame() {
 	coin_y = ((int)car_obstacle_y + 160) % 320;
 	coin_exists = rand() % 2;
 }
-
 
 void startgame(void) {
 	if (((car_obstacle_y != j) || abs(car_obstacle_x - car_x_pos) >= 90) && fuel > 0)
@@ -152,6 +153,7 @@ void startgame(void) {
 		random_i_c = (random_i_c != random_i_o) ? random_i_c : (random_i_c + 1) % 3;
 
 		if (coin_exists && abs(car_x_pos - coin_x) <= 50 && abs(j - coin_y) <= 25) {
+			PlaySound(TEXT("coin.wav"), NULL, SND_FILENAME | SND_ASYNC);
 			score += 50;
 			cout << "Score:  " << score << endl;
 			coin_x = -200;
@@ -159,6 +161,7 @@ void startgame(void) {
 		}
 
 		if (abs(car_x_pos - fuel_x) <= 40 && abs(j - fuel_y) <= 35) {
+			PlaySound(TEXT("fuel.wav"), NULL, SND_FILENAME | SND_ASYNC);
 			fuel = 100;
 			fuel_x = -200;
 			fuel_exists = 0;
@@ -197,6 +200,10 @@ void startgame(void) {
 	}
 	else {
 		gameRunning = 0;
+		if (!sound_played) {
+			PlaySound(TEXT("car.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			sound_played = true;
+		}
 		if (!score_added) {
 			writeLeaderboard();
 			score_added = true;
@@ -770,7 +777,6 @@ void drawLeaderboard() {
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-  
 	glColor3f(0.55, 0.788, 0.451);
 
 	// Bottom grass
@@ -930,7 +936,7 @@ void drawScene(void)
 			RenderString(205.0f, 400.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
 		}
 		drawLeaderboard();
-		drawRestartButton();
+		drawRestartButton();	
 	}
 
 	startgame();
