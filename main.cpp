@@ -199,6 +199,7 @@ void startgame(void) {
 		glutPostRedisplay();
 	}
 	else {
+		cout << "Game over" << endl;
 		gameRunning = 0;
 		if (!sound_played) {
 			PlaySound(TEXT("car.wav"), NULL, SND_FILENAME | SND_ASYNC);
@@ -927,16 +928,13 @@ void drawScene(void)
 
 	glPopMatrix();
 
-	// Fuel gauge
-	drawMeter(fuel);
-
 	if (!gameRunning) {
 		RenderString(270.0f, 430.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
 		if (fuel <= 0) {
 			RenderString(205.0f, 400.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
 		}
 		drawLeaderboard();
-		drawRestartButton();	
+		drawRestartButton();
 	}
 
 	startgame();
@@ -1046,9 +1044,43 @@ void handleKeys()
 	}
 }
 
+void callback_Main(int key)
+{
+	if (key == 0)
+	{
+		mciSendString(L"stop music", NULL, 0, NULL);
+		mciSendString(L"close music", NULL, 0, NULL);
+		exit(0);
+	}
+}
+
+void callback_Sound(int key)
+{
+	mciSendString(L"stop music", NULL, 0, NULL);
+	mciSendString(L"close music", NULL, 0, NULL);
+	if (key == 0) {
+		mciSendString(L"open \"rockit.mp3\" type mpegvideo alias music", NULL, 0, NULL);
+	}
+	else if (key == 1) {
+		mciSendString(L"open \"passion.mp3\" type mpegvideo alias music", NULL, 0, NULL);
+	}
+	else if (key == 2) {
+		mciSendString(L"open \"cyberwar.mp3\" type mpegvideo alias music", NULL, 0, NULL);
+	}
+	mciSendString(L"setaudio music volume to 75", NULL, 0, NULL);
+	mciSendString(L"set music time format milliseconds", NULL, 0, NULL);
+	mciSendString(L"play music repeat", NULL, 0, NULL);
+
+}
+
 int main(int argc, char** argv)
 {
+	int menuMain, menuSound;
 	glutInit(&argc, argv);
+	mciSendString(L"open \"rockit.mp3\" type mpegvideo alias music", NULL, 0, NULL);
+	mciSendString(L"setaudio music volume to 75", NULL, 0, NULL);
+	mciSendString(L"set music time format milliseconds", NULL, 0, NULL);
+	mciSendString(L"play music repeat", NULL, 0, NULL);
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
 	glutInitWindowSize(800, 600);
 	glutInitWindowPosition(100, 100);
@@ -1061,6 +1093,17 @@ int main(int argc, char** argv)
 	glutSpecialUpFunc(keyboardUp);
 
 	glutIdleFunc(handleKeys);
+
+	menuSound = glutCreateMenu(callback_Sound);
+	glutAddMenuEntry("Rock It ", 0);
+	glutAddMenuEntry("Passion ", 1);
+	glutAddMenuEntry("Cyber War ", 2);
+
+	menuMain = glutCreateMenu(callback_Main);
+
+	glutAddSubMenu("Pick background song: ", menuSound);
+	glutAddMenuEntry("Iesire ", 0);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glutMainLoop();
 }
