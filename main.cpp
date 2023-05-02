@@ -2,6 +2,10 @@
 #include <windows.h>
 #include <math.h>
 #include <GL/freeglut.h>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -11,6 +15,8 @@ GLdouble bottom_m = -140.0;
 GLdouble top_m = 460.0;
 
 double gameRunning = 1;
+boolean score_added = false;
+boolean score_read = false;
 double j = 0.0;
 double i = 0.0;
 
@@ -21,9 +27,9 @@ double thirdIntermittentLineXTranslation = 0.0;
 double car_x_pos = 0.0;
 double contor = 0;
 
-int vector[3] = { 0, 160, 320 };
+int arr[3] = { 0, 160, 320 };
 double car_obstacle_x = 800;
-double car_obstacle_y = vector[rand() % 3];
+double car_obstacle_y = arr[rand() % 3];
 double coin_x = 800;
 double coin_y = ((int)car_obstacle_y + 160) % 320;
 int coin_exists = rand() % 2;
@@ -34,7 +40,8 @@ float fuel_x = 1150;
 float fuel_y = ((int)car_obstacle_y) % 320;
 int fuel_exists = rand() % 5;
 
-int score = 0;
+int score = 0
+vector<int> scores;
 double speed = 0.25;
 int points = 1000;
 double rbl, rbr, rtl, rtr = 0;
@@ -51,16 +58,39 @@ void init(void)
 	glOrtho(left_m, right_m, bottom_m, top_m, -1.0, 1.0);
 }
 
-void RenderString(float x, float y, void* font, const unsigned char* string)
+void RenderString(float x, float y, void* font, const unsigned char* string, GLfloat r = 0.0f, GLfloat g = 0.0f, GLfloat b = 0.0f)
 {
-	glColor3f(0.0f, 0.0f, 0.0f);
+	glColor3f(r, g, b);
 	glRasterPos2f(x, y);
 
 	glutBitmapString(font, string);
 }
 
+void writeLeaderboard() {
+	ofstream outFile("scores.txt", ios::app);
+	if (!outFile) {
+		cerr << "Failed to create/open the file!" << endl;
+	}
+	outFile << score << endl;
+	outFile.close();
+}
+void readLeaderboard() {
+	std::ifstream inFile("scores.txt");
+	if (inFile.is_open())
+	{
+		int score;
+		while (inFile >> score)
+		{
+			scores.push_back(score);
+		}
+		inFile.close();
+	}
+}
+
 void resetGame() {
 	gameRunning = 1;
+	score_added = false;
+	score_read = false;
 	j = 0.0;
 	i = 0.0;
 	flowers_x = 0;
@@ -71,8 +101,9 @@ void resetGame() {
 	car_x_pos = 0.0;
 	contor = 0;
 	car_obstacle_x = 800;
-	car_obstacle_y = vector[rand() % 3];
+	car_obstacle_y = arr[rand() % 3];
 	score = 0;
+	scores.clear();
 	speed = 0.15;
 	points = 1000;
 	rbl, rbr, rtl, rtr = 0;
@@ -136,7 +167,7 @@ void startgame(void) {
 		if (car_obstacle_x < -150)
 		{
 			score += 100;
-			car_obstacle_y = vector[random_i_o];
+			car_obstacle_y = arr[random_i_o];
 			cout << "Score:  " << score << endl;
 			car_obstacle_x = 800;
 
@@ -146,13 +177,13 @@ void startgame(void) {
 
 		if (coin_exists && coin_x < -150)
 		{
-			coin_y = vector[random_i_c];
+			coin_y = arr[random_i_c];
 			coin_x = 800;
 		}
 
 		if (fuel_exists == 2 && fuel_x < -150)
 		{
-			fuel_y = vector[random_i_f];
+			fuel_y = arr[random_i_f];
 			fuel_x = 1150;
 		}
 
@@ -166,6 +197,10 @@ void startgame(void) {
 	}
 	else {
 		gameRunning = 0;
+		if (!score_added) {
+			writeLeaderboard();
+			score_added = true;
+		}
 	}
 }
 
@@ -698,10 +733,44 @@ void drawTopandBotFlowers() {
 	}
 }
 
+void drawRestartButton() {
+	glColor3f(1, 0.4, 0.3);
+	glBegin(GL_QUAD_STRIP);
+	glVertex2f(270.0, -65.0);
+	glVertex2f(270.0, -15.0);
+	glVertex2f(360.0, -65.0);
+	glVertex2f(360.0, -15.0);
+	glEnd();
+	RenderString(285.0f, -45.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"Restart");
+}
+void drawLeaderboard() {
+	int maxDisplayScores = 10;
+	if (!score_read) {
+		readLeaderboard();
+		sort(scores.rbegin(), scores.rend());
+		score_read = true;
+	}
+	RenderString(238.0f, 360.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"LEADERBOARD");
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0, 0.0, 0.0, 0.5);
+	glBegin(GL_QUADS);
+	glVertex2f(150.0f, 340.0f);
+	glVertex2f(475.0f, 340.0f);
+	glVertex2f(475.0f, 0.0f);
+	glVertex2f(150.0f, 0.0f);
+	glEnd();
+	glDisable(GL_BLEND);
+	for (int n = 0; n < scores.size() && n < maxDisplayScores; n++) {
+		string score_l = to_string(n + 1) + ". " + to_string(scores[n]) + " POINTS";
+		RenderString(250.0f, 310.0f - (n * 32.0f), GLUT_BITMAP_HELVETICA_18, (const unsigned char*)score_l.c_str(), 1.0f, 1.0f, 1.0f);
+	}
+}
+
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-
+  
 	glColor3f(0.55, 0.788, 0.451);
 
 	// Bottom grass
@@ -729,7 +798,13 @@ void drawScene(void)
 	glPopMatrix();
 
 	// Display text
-	RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"Outrun the cars!");
+	if (gameRunning) {
+		RenderString(200.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)"Outrun the cars!");
+		string score_str = "Score: " + to_string(score);
+		RenderString(-80.0f, 425.0f, GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)score_str.c_str());
+		// Fuel gauge
+		drawMeter(fuel);
+	}
 
 	// Road boundary
 	glLineWidth(3);
@@ -850,18 +925,12 @@ void drawScene(void)
 	drawMeter(fuel);
 
 	if (!gameRunning) {
-		RenderString(250.0f, 200.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER!");
+		RenderString(270.0f, 430.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
 		if (fuel <= 0) {
-			RenderString(205.0f, 100.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
+			RenderString(205.0f, 400.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
 		}
-		glColor3f(1, 0.4, 0.3);
-		glBegin(GL_QUAD_STRIP);
-		glVertex2f(260.0, 180.0);
-		glVertex2f(260.0, 130.0);
-		glVertex2f(350.0, 180.0);
-		glVertex2f(350.0, 130.0);
-		glEnd();
-		RenderString(275.0f, 150.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"Restart");
+		drawLeaderboard();
+		drawRestartButton();
 	}
 
 	startgame();
@@ -934,7 +1003,7 @@ void mouse(int button, int state, int mx, int my)
 		double wx = (double)mx / glutGet(GLUT_WINDOW_WIDTH) * (right_m - left_m) + left_m;
 		double wy = (1.0 - (double)my / glutGet(GLUT_WINDOW_HEIGHT)) * (top_m - bottom_m) + bottom_m;
 
-		if (wx >= 260.0 && wx <= 350.0 && wy >= 130.0 && wy <= 180.0) {
+		if (wx >= 270.0 && wx <= 360.0 && wy >= -65 && wy <= -15) {
 			if (!gameRunning)
 				resetGame();
 		}
