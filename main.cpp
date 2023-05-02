@@ -103,6 +103,7 @@ void resetGame() {
 	car_obstacle_x = 800;
 	car_obstacle_y = arr[rand() % 3];
 	score = 0;
+	scores.clear();
 	speed = 0.15;
 	points = 1000;
 	rbl, rbr, rtl, rtr = 0;
@@ -769,7 +770,6 @@ void drawLeaderboard() {
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
-
 	glColor3f(0.55, 0.788, 0.451);
 
 	// Bottom grass
