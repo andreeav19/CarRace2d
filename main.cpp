@@ -199,7 +199,6 @@ void startgame(void) {
 		glutPostRedisplay();
 	}
 	else {
-		cout << "Game over" << endl;
 		gameRunning = 0;
 		if (!sound_played) {
 			PlaySound(TEXT("car.wav"), NULL, SND_FILENAME | SND_ASYNC);
@@ -927,6 +926,9 @@ void drawScene(void)
 	drawFuelTank();
 
 	glPopMatrix();
+
+	// Fuel gauge
+	drawMeter(fuel);
 
 	if (!gameRunning) {
 		RenderString(270.0f, 430.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
