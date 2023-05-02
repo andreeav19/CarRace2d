@@ -40,7 +40,7 @@ float fuel_x = 1150;
 float fuel_y = ((int)car_obstacle_y) % 320;
 int fuel_exists = rand() % 5;
 
-int score = 0
+int score = 0;
 vector<int> scores;
 double speed = 0.25;
 int points = 1000;
