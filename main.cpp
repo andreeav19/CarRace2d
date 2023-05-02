@@ -40,7 +40,7 @@ float fuel_x = 1150;
 float fuel_y = ((int)car_obstacle_y) % 320;
 int fuel_exists = rand() % 5;
 
-int score = 0;
+int score = 0
 vector<int> scores;
 double speed = 0.25;
 int points = 1000;
@@ -770,6 +770,7 @@ void drawLeaderboard() {
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+  
 	glColor3f(0.55, 0.788, 0.451);
 
 	// Bottom grass
@@ -920,13 +921,16 @@ void drawScene(void)
 
 	glPopMatrix();
 
+	// Fuel gauge
+	drawMeter(fuel);
+
 	if (!gameRunning) {
 		RenderString(270.0f, 430.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"GAME OVER");
 		if (fuel <= 0) {
 			RenderString(205.0f, 400.0f, GLUT_BITMAP_HELVETICA_18, (const unsigned char*)"YOU RAN OUT OF FUEL!");
 		}
 		drawLeaderboard();
-		drawRestartButton();	
+		drawRestartButton();
 	}
 
 	startgame();
